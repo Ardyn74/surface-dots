@@ -586,18 +586,21 @@ PanelWindow {
 
             // 11. TRAY
             Rectangle {
-                visible: SystemTray.items.length > 0
+                visible: SystemTray.items.values.length > 0
                 height: 30
-                width: (SystemTray.items.length * 28) + 12
+                Layout.preferredWidth: trayRow.implicitWidth + 16
+                Layout.alignment: Qt.AlignVCenter
                 radius: 15
                 color: pal.bg
                 border.width: 1
                 border.color: pal.border
                 Row {
+                    id: trayRow
                     anchors.centerIn: parent; spacing: 8
                     Repeater {
                         model: SystemTray.items
                         Item {
+                            id: trayDelegate
                             width: 20; height: 20
                             scale: trayPress.pressed ? 0.94 : (trayPress.containsMouse ? 1.06 : 1.0)
                             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
@@ -610,14 +613,29 @@ PanelWindow {
                                 Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
                             }
 
-                            Image { anchors.centerIn: parent; width: 16; height: 16; source: modelData.icon }
+                            Image { id: trayImg; anchors.centerIn: parent; width: 16; height: 16; source: modelData.icon; sourceSize: Qt.size(32, 32); fillMode: Image.PreserveAspectFit; visible: false }
+                            ColorOverlay {
+                                anchors.fill: trayImg
+                                source: trayImg
+                                color: trayPress.containsMouse ? pal.accent : pal.textPrimary
+                                cached: true
+                                Behavior on color { ColorAnimation { duration: 150 } }
+                            }
                             MouseArea {
                                 id: trayPress
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                onClicked: (mouse) => modelData.activate(mouse.button)
-                                onPressed: (mouse) => { if (mouse.button === Qt.RightButton) modelData.menu.open(this) }
+                                acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+                                onClicked: (mouse) => {
+                                    if (mouse.button === Qt.LeftButton && !modelData.onlyMenu)
+                                        modelData.activate()
+                                    else if (mouse.button === Qt.MiddleButton)
+                                        modelData.secondaryActivate()
+                                    else if (modelData.hasMenu) {
+                                        var p = trayDelegate.mapToItem(null, 0, trayDelegate.height + 4)
+                                        modelData.display(win, p.x, p.y)
+                                    }
+                                }
                             }
                         }
                     }
