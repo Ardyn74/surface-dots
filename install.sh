@@ -112,7 +112,7 @@ if [ -n "$INTERNAL_CARD" ] && [ -f "$INTERNAL_CARD/modes" ]; then
     DETECTED_RES=$(head -n 1 "$INTERNAL_CARD/modes")
 else
     INTERNAL_MONITOR="eDP-1"
-    DETECTED_RES="1920x1080"
+    DETECTED_RES="2880x1800"
 fi
 SCALE="1"
 HEIGHT=$(echo "$DETECTED_RES" | cut -d'x' -f2)
