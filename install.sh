@@ -45,8 +45,8 @@ paru -S --needed --noconfirm \
     grimblast-git \
     ttf-cm-unicode \
     evercal \
-    ttf-inter \
-    ttf-manrope \
+    inter-font \
+    otf-manrope \
     ttf-plus-jakarta-sans
 
 # 4. Locate surface-dots files
