@@ -105,14 +105,15 @@ cp -r "$REPO_DIR/cursor/Saturnian-Night" ~/.icons/
 
 # 9. Auto-Detect Laptop Screen & Patch hyprland.lua
 log "Detecting laptop display..."
-INTERNAL_MONITOR=$(ls /sys/class/drm/ | grep -E '^card[0-9]+-eDP-[0-9]+' | sed 's/^card[0-9]*-//' | head -n 1 || echo "eDP-1")
+INTERNAL_CARD=$(find /sys/class/drm/ -maxdepth 1 -name "card*-eDP-*" | head -n 1 || true)
 
-if [ -f "/sys/class/drm/card0-$INTERNAL_MONITOR/modes" ]; then
-    DETECTED_RES=$(head -n 1 "/sys/class/drm/card0-$INTERNAL_MONITOR/modes")
+if [ -n "$INTERNAL_CARD" ] && [ -f "$INTERNAL_CARD/modes" ]; then
+    INTERNAL_MONITOR=$(basename "$INTERNAL_CARD" | sed 's/^card[0-9]*-//')
+    DETECTED_RES=$(head -n 1 "$INTERNAL_CARD/modes")
 else
+    INTERNAL_MONITOR="eDP-1"
     DETECTED_RES="1920x1080"
 fi
-
 SCALE="1"
 HEIGHT=$(echo "$DETECTED_RES" | cut -d'x' -f2)
 if [ "$HEIGHT" -gt 1200 ]; then
