@@ -46,8 +46,16 @@ paru -S --needed --noconfirm \
     ttf-cm-unicode \
     evercal \
     inter-font \
-    otf-manrope \
     ttf-plus-jakarta-sans
+
+# Install Manrope fonts directly to avoid broken AUR download links
+log "Installing Manrope fonts manually..."
+sudo mkdir -p /usr/local/share/fonts/manrope
+sudo curl -sL "https://github.com/sharanda/manrope/raw/master/fonts/ttf/Manrope-Regular.ttf" -o /usr/local/share/fonts/manrope/Manrope-Regular.ttf
+sudo curl -sL "https://github.com/sharanda/manrope/raw/master/fonts/ttf/Manrope-Bold.ttf" -o /usr/local/share/fonts/manrope/Manrope-Bold.ttf
+sudo curl -sL "https://github.com/sharanda/manrope/raw/master/fonts/ttf/Manrope-Medium.ttf" -o /usr/local/share/fonts/manrope/Manrope-Medium.ttf
+sudo curl -sL "https://github.com/sharanda/manrope/raw/master/fonts/ttf/Manrope-SemiBold.ttf" -o /usr/local/share/fonts/manrope/Manrope-SemiBold.ttf
+sudo fc-cache -fv > /dev/null
 
 # 4. Locate surface-dots files
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
