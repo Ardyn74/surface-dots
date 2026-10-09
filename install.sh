@@ -101,11 +101,17 @@ sudo mkdir -p /usr/share/sddm/themes /etc/sddm.conf.d
 if [ "$LOCK_THEME" = "pixel" ]; then
     sudo cp -r "$REPO_DIR/sddm/themes/pixel/no_faceanimation" /usr/share/sddm/themes/pixel
     echo -e "[Theme]\nCurrent=pixel" | sudo tee /etc/sddm.conf.d/theme.conf
+    sudo sed -i "s|\"snes\"|\"$USER\"|g" /usr/share/sddm/themes/pixel/Main.qml 2>/dev/null || true
 else
     sudo cp -r "$REPO_DIR/sddm/themes/stellarium" /usr/share/sddm/themes/stellarium
     echo -e "[Theme]\nCurrent=stellarium" | sudo tee /etc/sddm.conf.d/theme.conf
+    # Fix author's hardcoded "snes" username so SDDM logs in as YOUR user
+    sudo sed -i "s|\"snes\"|\"$USER\"|g" /usr/share/sddm/themes/stellarium/Login.qml 2>/dev/null || true
+    sudo sed -i "s|\"snes\"|\"$USER\"|g" /usr/share/sddm/themes/stellarium/Main.qml 2>/dev/null || true
 fi
 
+# Fix username in hyprlock display text
+sed -i "s|>snes<|>$USER<|g" ~/.config/hypr/hyprlock.conf 2>/dev/null || true
 # 8. Install Custom Cursors
 log "Installing Saturnian cursors..."
 cp -r "$REPO_DIR/cursor/Saturnian-Day" ~/.icons/
