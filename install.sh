@@ -103,27 +103,44 @@ log "Installing Saturnian cursors..."
 cp -r "$REPO_DIR/cursor/Saturnian-Day" ~/.icons/
 cp -r "$REPO_DIR/cursor/Saturnian-Night" ~/.icons/
 
-# 9. Auto-Detect Laptop Screen & Patch hyprland.lua
-log "Detecting laptop display..."
-INTERNAL_CARD=$(find /sys/class/drm/ -maxdepth 1 -name "card*-eDP-*" | head -n 1 || true)
+# 9. Configure 2.8K 90Hz Display in hyprland.lua
+log "Configuring 2880x1800@90Hz display with 1.5x scaling..."
+TARGET_OUTPUT="eDP-1"
+TARGET_MODE="2880x1800@90"
+TARGET_SCALE="1.5"
 
-if [ -n "$INTERNAL_CARD" ] && [ -f "$INTERNAL_CARD/modes" ]; then
-    INTERNAL_MONITOR=$(basename "$INTERNAL_CARD" | sed 's/^card[0-9]*-//')
-    DETECTED_RES=$(head -n 1 "$INTERNAL_CARD/modes")
-else
-    INTERNAL_MONITOR="eDP-1"
-    DETECTED_RES="2880x1800"
-fi
-SCALE="1"
-HEIGHT=$(echo "$DETECTED_RES" | cut -d'x' -f2)
-if [ "$HEIGHT" -gt 1200 ]; then
-    SCALE="1.25"
+if [ -f ~/.config/hypr/hyprland.lua ]; then
+    # Set 2880x1800 at 90Hz and 1.5x scaling
+    sed -i "s|output   = \"eDP-1\"|output   = \"$TARGET_OUTPUT\"|g" ~/.config/hypr/hyprland.lua
+    sed -i "s|2256x1504@60|$TARGET_MODE|g" ~/.config/hypr/hyprland.lua
+    sed -i "s|scale    = 1,|scale    = $TARGET_SCALE,|g" ~/.config/hypr/hyprland.lua
+
+    # Ensure opening the laptop lid doesn't reset the scale back to 1
+    sed -i "s|eDP-1,preferred,auto,1|${TARGET_OUTPUT},preferred,auto,${TARGET_SCALE}|g" ~/.config/hypr/hyprland.lua
 fi
 
-log "Applying monitor settings ($INTERNAL_MONITOR: $DETECTED_RES@60, scale $SCALE)..."
-sed -i "s|output   = \"eDP-1\"|output   = \"$INTERNAL_MONITOR\"|g" ~/.config/hypr/hyprland.lua
-sed -i "s|2256x1504@60|${DETECTED_RES}@60|g" ~/.config/hypr/hyprland.lua
-sed -i "s|scale    = 1,|scale    = $SCALE,|g" ~/.config/hypr/hyprland.lua
+# -------------------------------------------------------------------------
+# Set ASUS Battery Charge Limit to 80%
+# -------------------------------------------------------------------------
+log "Configuring ASUS battery charge limit to 80%..."
+
+sudo tee /etc/systemd/system/battery-charge-threshold.service > /dev/null << 'EOF'
+[Unit]
+Description=Set ASUS battery charge limit to 80%
+After=multi-user.target
+After=suspend.target
+After=hibernate.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'for b in /sys/class/power_supply/BAT*; do [ -f "$b/charge_control_end_threshold" ] && echo 80 > "$b/charge_control_end_threshold" || true; done'
+
+[Install]
+WantedBy=multi-user.target suspend.target hibernate.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable battery-charge-threshold.service
 
 # 10. Enable System & User Services
 log "Enabling systemd daemons..."
