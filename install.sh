@@ -49,11 +49,17 @@ paru -S --needed --noconfirm \
     ttf-manrope \
     ttf-plus-jakarta-sans
 
-# 4. Clone surface-dots
-REPO_DIR="/tmp/surface-dots"
-rm -rf "$REPO_DIR"
-log "Cloning surface-dots repository..."
-git clone --depth=1 https://github.com/snes19xx/surface-dots.git "$REPO_DIR"
+# 4. Locate surface-dots files
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -d "$SCRIPT_DIR/.config" ]; then
+    REPO_DIR="$SCRIPT_DIR"
+    log "Using local repository at $REPO_DIR"
+else
+    REPO_DIR="/tmp/surface-dots"
+    rm -rf "$REPO_DIR"
+    log "Cloning repository..."
+    git clone --depth=1 https://github.com/Ardyn74/surface-dots.git "$REPO_DIR"
+fi
 
 # 5. Deploy Configurations
 log "Deploying user configurations..."
